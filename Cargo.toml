@@ -1,0 +1,7 @@
+[package]
+name = "solar_system_rust"
+version = "0.1.0"
+authors = ["Federico Pasqua <federico.pasqua.96@gmail.com>"]
+
+[dependencies]
+num = "0.1.42"

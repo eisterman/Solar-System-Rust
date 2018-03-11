@@ -21,7 +21,7 @@ pub struct Planet<T> where T: Float {
 
 impl<T> Planet<T> where T: Float {
     fn new(name: &str, pos: Vector2<T>, vel: Vector2<T>, mass: T) -> Planet<T> {
-        //TODO: Check mass > 0 (?)
+        assert!( mass > num::zero() );
         Planet { name: String::from(name), pos, vel, mass }
     }
 }

@@ -44,21 +44,18 @@ impl<T> Div<T> for Vector2<T> where T: Div<Output=T> + Float {
 
 #[allow(dead_code)]
 impl<T> Vector2<T> where T: Float {
-    fn new(x: T, y: T) -> Vector2<T> {
+    pub fn new(x: T, y: T) -> Vector2<T> {
         Vector2::<T> { x, y }
     }
     
-    fn get_x(self) -> T { self.x }
-    fn get_y(self) -> T { self.y }
-}
-
-#[allow(dead_code)]
-impl<T> Vector2<T> where T: Float {
-    fn new_zero() -> Vector2<T> {
+    pub fn new_zero() -> Vector2<T> {
         Vector2::<T> { x: num::zero(), y: num::zero() }
     }
 
-    fn norm(self) -> T {
+    pub fn get_x(&self) -> T { self.x }
+    pub fn get_y(&self) -> T { self.y }
+
+    pub fn norm(&self) -> T {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 }

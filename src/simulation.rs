@@ -3,20 +3,20 @@ extern crate num;
 use std::fmt;
 use num::{Float,Integer,NumCast};
 use vector::Vector2;
-use sim_elements::{Simulable,Planet};
+use sim_elements::Simulable;
 
-pub const default_G: f64 = 5.6;
+pub const DEFAULT_G: f64 = 5.6;
 
 pub struct Simulation<T,U> where T: Float, U: Integer + Copy {
     delta_t: U,
     total_rel_t: U,
-    G: T,
+    univ_g: T,
     sim_bodies: Vec<Box<Simulable<T,U>>>,
-    sim_datas: Vec<Sim_Data<T>>, // Cache
+    sim_datas: Vec<SimData<T>>, // Cache
 }
 
 #[derive(Clone,Copy)]
-pub struct Sim_Data<T> where T: Float {
+pub struct SimData<T> where T: Float {
     pub id: usize,
     pub pos: Vector2<T>,
     pub vel: Vector2<T>,
@@ -24,19 +24,19 @@ pub struct Sim_Data<T> where T: Float {
 }
 
 impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
-    pub fn new(time_granularity: U, G: T) -> Simulation<T,U> {
+    pub fn new(time_granularity: U, univ_g: T) -> Simulation<T,U> {
         assert!(time_granularity != num::zero());
         Simulation{
             delta_t: time_granularity,
             total_rel_t: num::zero(),
             sim_bodies: Vec::new(),
-            G: G,
+            univ_g: univ_g,
             sim_datas: Vec::new(),
         }
     }
 
     pub fn add_body(&mut self, body: Box<Simulable<T,U>>) {
-        let data = Sim_Data { 
+        let data = SimData { 
             id: self.sim_bodies.len(),
             pos: body.get_position(),
             vel: body.get_velocity(),
@@ -48,7 +48,7 @@ impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
 
     fn evolve_single_delta_t(&mut self) {
         for (i,body) in self.sim_bodies.iter_mut().enumerate() {
-            body.simulate_step(i, &self.sim_datas, self.delta_t, self.G);
+            body.simulate_step(i, &self.sim_datas, self.delta_t, self.univ_g);
         }
         for (data,body) in self.sim_datas.iter_mut().zip(&self.sim_bodies) {
             data.pos = body.get_position();

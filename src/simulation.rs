@@ -17,7 +17,6 @@ pub struct Simulation<T,U> where T: Float, U: Integer + Copy {
 
 #[derive(Clone,Copy)]
 pub struct SimData<T> where T: Float {
-    pub id: usize,
     pub pos: Vector2<T>,
     pub vel: Vector2<T>,
     pub mass: T,
@@ -36,24 +35,18 @@ impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
     }
 
     pub fn add_body(&mut self, body: Box<Simulable<T,U>>) {
-        let data = SimData { 
-            id: self.sim_bodies.len(),
-            pos: body.get_position(),
-            vel: body.get_velocity(),
-            mass: body.get_mass(),
-        };
+        let data = body.get_data();
         self.sim_bodies.push(body);
         self.sim_datas.push(data);
     }
 
     fn evolve_single_delta_t(&mut self) {
         for (i,body) in self.sim_bodies.iter_mut().enumerate() {
-            body.simulate_step(i, &self.sim_datas, self.delta_t, self.univ_g);
+            let mut iter_data = self.sim_datas.iter().skip(i);
+            body.simulate_step( iter_data, self.delta_t, self.univ_g);
         }
         for (data,body) in self.sim_datas.iter_mut().zip(&self.sim_bodies) {
-            data.pos = body.get_position();
-            data.vel = body.get_velocity();
-            data.mass = body.get_mass();
+            *data = body.get_data();
         }
         self.total_rel_t = self.total_rel_t + num::one();
     }

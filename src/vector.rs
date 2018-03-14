@@ -42,7 +42,6 @@ impl<T> Div<T> for Vector2<T> where T: Div<Output=T> + Float {
     }
 }
 
-#[allow(dead_code)]
 impl<T> Vector2<T> where T: Float {
     pub fn new(x: T, y: T) -> Vector2<T> {
         Vector2::<T> { x, y }

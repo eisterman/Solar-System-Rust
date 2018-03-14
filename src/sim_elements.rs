@@ -1,9 +1,7 @@
 extern crate num;
 
 use vector::Vector2;
-use num::Float;
-use num::Integer;
-use num::NumCast;
+use num::{Float,Integer,NumCast};
 use simulation::SimData;
 use std::slice::Iter;
 use std::iter::Skip;

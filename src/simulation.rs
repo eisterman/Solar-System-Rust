@@ -5,7 +5,7 @@ use num::{Float,Integer,NumCast};
 use vector::Vector2;
 use sim_elements::Simulable;
 
-pub const DEFAULT_G: f64 = 5.6;
+pub const DEFAULT_G: f64 = 0.00001;
 
 pub struct Simulation<T,U> where T: Float, U: Integer + Copy {
     delta_t: U,
@@ -42,7 +42,7 @@ impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
 
     fn evolve_single_delta_t(&mut self) {
         for (i,body) in self.sim_bodies.iter_mut().enumerate() {
-            let mut iter_data = self.sim_datas.iter().skip(i);
+            let iter_data: Vec<&SimData<T>> = self.sim_datas.iter().enumerate().filter(|&(n, _)| n != i).map(|(_, v)| v).collect();
             body.simulate_step( iter_data, self.delta_t, self.univ_g);
         }
         for (data,body) in self.sim_datas.iter_mut().zip(&self.sim_bodies) {
@@ -58,8 +58,18 @@ impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
     }
 }
 
-impl<T,U> fmt::Display for Simulation<T,U> where T: Float, U: Integer + Copy {
+impl<T> fmt::Display for SimData<T> where T: Float + fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", 5, 6)
+        write!(f, "Pos = {} , Vel= {}", self.pos, self.vel)
+    }
+}
+
+impl<T,U> fmt::Display for Simulation<T,U> where T: Float + fmt::Display, U: Integer + Copy + fmt::Display {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "T={}", self.total_rel_t * self.delta_t)?;
+        for body in self.sim_bodies.iter() {
+            writeln!(f, "{} - {}", body.get_name(), body.get_data())?;
+        }
+        Ok(())
     }
 }

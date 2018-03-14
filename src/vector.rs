@@ -1,5 +1,6 @@
 extern crate num;
 
+use std::fmt;
 use num::Float;
 use std::ops::{Add,Sub,Mul,Div};
 
@@ -60,6 +61,12 @@ impl<T> Vector2<T> where T: Float {
 }
 
 //TODO: How to make 5 * Vec2? I really need it?
+
+impl<T> fmt::Display for Vector2<T> where T: Float + fmt::Display {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({},{})", self.x, self.y)
+    }
+}
 
 #[cfg(test)]
 mod tests{

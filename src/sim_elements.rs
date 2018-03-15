@@ -1,7 +1,5 @@
-extern crate num;
-
 use vector::Vector2;
-use num::{Float,Integer,NumCast};
+use num::{self,Float,Integer,NumCast};
 use simulation::SimData;
 
 pub trait Simulable<T,U> where T: Float, U: Integer {

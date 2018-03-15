@@ -1,7 +1,5 @@
-extern crate num;
-
 use std::fmt;
-use num::{Float,Integer,NumCast};
+use num::{self,Float,Integer,NumCast};
 use vector::Vector2;
 use sim_elements::Simulable;
 

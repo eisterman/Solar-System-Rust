@@ -1,7 +1,5 @@
-extern crate num;
-
 use std::fmt;
-use num::Float;
+use num::{self,Float};
 use std::ops::{Add,Sub,Mul,Div};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]

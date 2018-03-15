@@ -38,7 +38,7 @@ impl<T> Div<T> for Vector2<T> where T: Div<Output=T> + Float {
     type Output = Vector2<T>;
 
     fn div(self, rhs: T) -> Vector2<T> {
-        assert!(rhs != num::zero()); //TODO: How to manipulate rhs = num::zero()?
+        assert_ne!(rhs, num::zero()); //TODO: How to manipulate rhs = num::zero()?
         Vector2::<T> { x: self.x / rhs, y: self.y / rhs }
     }
 }

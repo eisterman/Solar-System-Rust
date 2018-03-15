@@ -30,7 +30,7 @@ impl<T,U> Simulable<T,U> for Planet<T> where T: Float, U: Integer + NumCast {
     fn simulate_step(&mut self, other_data: Vec<&SimData<T>>, delta_t: U, univ_g: T) {
         let mut res_force: Vector2<T> = Vector2::new_zero();
         let my_data = &mut self.data;
-        for body in other_data.iter() {
+        for body in other_data {
             let distance_vec = body.pos - my_data.pos;
             let single_force = distance_vec * ( univ_g * my_data.mass * body.mass / distance_vec.norm().powi(3) );
             res_force = res_force + single_force;

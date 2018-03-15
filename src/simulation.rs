@@ -24,7 +24,7 @@ pub struct SimData<T> where T: Float {
 
 impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
     pub fn new(time_granularity: U, univ_g: T) -> Simulation<T,U> {
-        assert!(time_granularity != num::zero());
+        assert_ne!(time_granularity, num::zero());
         Simulation{
             delta_t: time_granularity,
             total_rel_t: num::zero(),

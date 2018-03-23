@@ -1,13 +1,19 @@
 extern crate num;
+extern crate ggez;
+extern crate alga;
+extern crate nalgebra;
 
-use std::fmt;
-use num::{Float,Integer,NumCast};
-use vector::Vector2;
+use std::fmt::Debug;
+use nalgebra::Scalar;
+use alga::general::Real;
+use alga::general::RingCommutative;
+use num::NumCast;
+use ggez::nalgebra::Vector2;
 use sim_elements::Simulable;
 
 pub const DEFAULT_G: f64 = 0.00001;
 
-pub struct Simulation<T,U> where T: Float, U: Integer + Copy {
+pub struct Simulation<T,U> where T: Scalar, U: RingCommutative + Copy {
     delta_t: U,
     total_rel_t: U,
     univ_g: T,
@@ -16,13 +22,13 @@ pub struct Simulation<T,U> where T: Float, U: Integer + Copy {
 }
 
 #[derive(Clone,Copy)]
-pub struct SimData<T> where T: Float {
+pub struct SimData<T> where T: Scalar {
     pub pos: Vector2<T>,
     pub vel: Vector2<T>,
     pub mass: T,
 }
 
-impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
+impl<T,U> Simulation<T,U> where T: Scalar + Real, U: Copy + NumCast + RingCommutative + Debug {
     pub fn new(time_granularity: U, univ_g: T) -> Simulation<T,U> {
         assert_ne!(time_granularity, num::zero());
         Simulation{
@@ -58,13 +64,16 @@ impl<T,U> Simulation<T,U> where T: Float, U: Integer + Copy + NumCast {
     }
 }
 
-impl<T> fmt::Display for SimData<T> where T: Float + fmt::Display {
+
+use std::fmt;
+
+impl<T> fmt::Display for SimData<T> where T: Real + fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Pos = {} , Vel= {}", self.pos, self.vel)
     }
 }
 
-impl<T,U> fmt::Display for Simulation<T,U> where T: Float + fmt::Display, U: Integer + Copy + fmt::Display {
+impl<T,U> fmt::Display for Simulation<T,U> where T: Real + fmt::Display, U: RingCommutative + Copy + fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(f, "T={}", self.total_rel_t * self.delta_t)?;
         for body in self.sim_bodies.iter() {

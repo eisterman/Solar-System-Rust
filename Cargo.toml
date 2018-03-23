@@ -1,7 +1,10 @@
 [package]
 name = "solar_system_rust"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Federico Pasqua <federico.pasqua.96@gmail.com>"]
 
 [dependencies]
 num = "0.1.42"
+alga = "0.5.3"
+nalgebra= "0.14.1"
+ggez = "0.4"

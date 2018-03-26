@@ -5,13 +5,14 @@ extern crate nalgebra;
 
 use std::fmt::Debug;
 use nalgebra::Scalar;
+use nalgebra::geometry::Point2;
+use nalgebra::Vector2;
 use alga::general::Real;
 use alga::general::RingCommutative;
 use num::ToPrimitive;
-use ggez::nalgebra::Vector2;
 use sim_elements::Simulable;
 
-pub const DEFAULT_G: f64 = 0.00001;
+//pub const DEFAULT_G: f64 = 1000.;
 
 pub struct Simulation<T,U> where T: Scalar, U: RingCommutative + Copy {
     delta_t: U,
@@ -23,7 +24,7 @@ pub struct Simulation<T,U> where T: Scalar, U: RingCommutative + Copy {
 
 #[derive(Clone,Copy)]
 pub struct SimData<T> where T: Scalar {
-    pub pos: Vector2<T>,
+    pub pos: Point2<T>,
     pub vel: Vector2<T>,
     pub mass: T,
 }
@@ -61,6 +62,10 @@ impl<T,U> Simulation<T,U> where T: Scalar + Real, U: Copy + ToPrimitive + RingCo
         for _ in 0..num_of_step.to_usize().unwrap() {
             self.evolve_single_delta_t();
         }
+    }
+
+    pub fn get_sim_data(&self) -> Vec<SimData<T>> {
+        self.sim_datas.clone()
     }
 }
 

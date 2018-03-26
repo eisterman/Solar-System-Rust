@@ -5,6 +5,7 @@ extern crate nalgebra;
 
 use alga::general::Real;
 use alga::general::RingCommutative;
+use nalgebra::geometry::Point2;
 use nalgebra::Vector2;
 use num::{ToPrimitive,NumCast};
 use simulation::SimData;
@@ -22,7 +23,7 @@ pub struct Planet<T> where T: Real {
 }
 
 impl<T> Planet<T> where T: Real {
-    pub fn new(name: &str, pos: Vector2<T>, vel: Vector2<T>, mass: T) -> Planet<T> {
+    pub fn new(name: &str, pos: Point2<T>, vel: Vector2<T>, mass: T) -> Planet<T> {
         assert!( mass > num::zero() );
         Planet { name: String::from(name), data: SimData{ pos, vel, mass }}
     }

@@ -7,7 +7,7 @@ use std::fmt::Debug;
 use nalgebra::Scalar;
 use alga::general::Real;
 use alga::general::RingCommutative;
-use num::NumCast;
+use num::ToPrimitive;
 use ggez::nalgebra::Vector2;
 use sim_elements::Simulable;
 
@@ -28,7 +28,7 @@ pub struct SimData<T> where T: Scalar {
     pub mass: T,
 }
 
-impl<T,U> Simulation<T,U> where T: Scalar + Real, U: Copy + NumCast + RingCommutative + Debug {
+impl<T,U> Simulation<T,U> where T: Scalar + Real, U: Copy + ToPrimitive + RingCommutative + Debug {
     pub fn new(time_granularity: U, univ_g: T) -> Simulation<T,U> {
         assert_ne!(time_granularity, num::zero());
         Simulation{

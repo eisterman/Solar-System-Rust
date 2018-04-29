@@ -2,6 +2,7 @@ extern crate num;
 extern crate ggez;
 extern crate alga;
 extern crate nalgebra;
+extern crate gnuplot;
 
 mod sim_elements;
 mod simulation;
@@ -11,11 +12,34 @@ use nalgebra::geometry::Point2;
 use sim_elements::Planet;
 use simulation::Simulation;
 use ggez::*;
+use ggez::event::Keycode;
+use ggez::event::Mod;
 use ggez::graphics::DrawMode;
 use ggez::graphics::Color;
 use ggez::graphics::Rect;
 
 const BEZIER_TOLERANCE: f32 = 2.0;
+
+#[derive(Debug,Clone)]
+struct PhysicalCollectedData {
+    total_angular_momentum: Vec<f32>,
+    system_kinetic_energy: Vec<f32>,
+    system_potential_energy: Vec<f32>
+}
+
+impl PhysicalCollectedData {
+    fn new() -> PhysicalCollectedData {
+        PhysicalCollectedData{  total_angular_momentum: Vec::new(), 
+                                system_kinetic_energy: Vec::new(), 
+                                system_potential_energy: Vec::new() }
+    }
+
+    fn add_data_tuple(&mut self, angular_momentum: f32, kinetic_energy: f32, potential_energy: f32) {
+        self.total_angular_momentum.push(angular_momentum);
+        self.system_kinetic_energy.push(kinetic_energy);
+        self.system_potential_energy.push(potential_energy);
+    }
+}
 
 #[derive(Clone,Copy)]
 pub enum BodyShape {
@@ -40,11 +64,12 @@ impl BodyGraphProperty {
 pub struct GraphicSimulation {
     engine: Simulation<f32,i32>,
     graph_property: Vec<BodyGraphProperty>,
+    stored_data: PhysicalCollectedData,
 }
 
 impl GraphicSimulation {
-    pub fn new(_ctx: &mut Context) -> GameResult<GraphicSimulation> {
-        let s = GraphicSimulation { engine: Simulation::new(64000, 6.67_e-14), graph_property: Vec::<BodyGraphProperty>::new() };
+    pub fn new(_ctx: &mut Context) -> GameResult<GraphicSimulation> { //64000 default gran
+        let s = GraphicSimulation { engine: Simulation::new(64000, 6.67_e-14), graph_property: Vec::<BodyGraphProperty>::new(), stored_data: PhysicalCollectedData::new() };
         Ok(s)
     }
 
@@ -69,6 +94,11 @@ impl GraphicSimulation {
 impl event::EventHandler for GraphicSimulation {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
         self.engine.evolve(1);
+        //Calculate L, Ek, Ep and insert in self.stored_data
+        let L = self.engine.calculate_angular_momentum_cdm();
+        let Ek = self.engine.calculate_kinetic_energy();
+        let Ep = self.engine.calculate_potential_energy();
+        self.stored_data.add_data_tuple(L, Ek, Ep);
         Ok(())
     }
 
@@ -103,5 +133,30 @@ impl event::EventHandler for GraphicSimulation {
         graphics::present(ctx);
 
         Ok(())
+    }
+
+    fn key_up_event(&mut self, _ctx: &mut Context, _keycode: Keycode, _keymod: Mod, _repeat: bool) {
+        match _keycode {
+            Keycode::Return => {
+                println!("Elaborazione dati in corso...");
+                // Elaborazione dati
+                use gnuplot::{Figure, Caption, Color};
+                // Angular Momentum
+                let y1 = &self.stored_data.total_angular_momentum;
+                let x1: Vec<f32> = (0..y1.len()).map(|x| {x as f32}).collect();
+                let mut fg1 = Figure::new();
+                fg1.axes2d().lines(&x1, y1, &[Caption("Total Angular Momentum"), Color("black")]);
+                fg1.show();
+                // Total Mechanical Energy
+                let y2: Vec<f32> = self.stored_data.system_kinetic_energy.iter().zip(self.stored_data.system_potential_energy.iter()).map(|(x,y)| { x + y }).collect();
+                let x2: Vec<f32> = (0..y2.len()).map(|x| {x as f32}).collect();
+                let mut fg2 = Figure::new();
+                fg2.axes2d().lines(&x2, &y2, &[Caption("Total Mechanical Energy"), Color("red")]);
+                fg2.show();
+                // Quit Event
+                _ctx.quit().unwrap();
+            }
+            _ => {}
+        }
     }
 }

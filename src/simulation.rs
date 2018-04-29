@@ -67,8 +67,46 @@ impl<T,U> Simulation<T,U> where T: Scalar + Real, U: Copy + ToPrimitive + RingCo
     pub fn get_sim_data(&self) -> Vec<SimData<T>> {
         self.sim_datas.clone()
     }
+
+    pub fn get_total_rel_t(&self) -> U {
+        self.total_rel_t
+    }
+
+    pub fn calculate_cdm(&self) -> Point2<T> {
+        let x: T = num::zero();
+        let y: T = num::zero();
+        let numerator = Point2::from_coordinates(self.sim_datas.iter().map(|x| -> Vector2<T> {x.pos * x.mass - Point2::<T>::origin()}).sum());
+        let denominator: T = self.sim_datas.iter().map(|x| x.mass).fold(num::zero(), |acc,x| {acc + x});
+        numerator / denominator
+    }
+
+    pub fn calculate_angular_momentum_cdm(&self) -> T {
+        let cdm = self.calculate_cdm();
+        // Lx = Ly = 0; Lz = PosX * VelY - PosY * VelX con posizioni relative al CDM
+        self.sim_datas.iter().map(|obj| (obj.pos.x - cdm.x)* obj.vel.y - (obj.pos.y - cdm.y) * obj.vel.x).fold(num::zero(), |acc,x| {acc + x})
+    }
 }
 
+//TODO: Find a solution! 0.5 break the generics structure
+impl Simulation<f32,i32> {
+    pub fn calculate_kinetic_energy(&self) -> f32 {
+        self.sim_datas.iter().map(|obj| { 0.5 * obj.mass * (obj.vel.x * obj.vel.x + obj.vel.y * obj.vel.y) } ).sum()
+    }
+
+    pub fn calculate_potential_energy(&self) -> f32 {
+        let mut cumulative = 0_f32;
+        let n_body = self.sim_datas.len();
+        for i in 0 .. n_body {
+            for j in (i+1) .. n_body {
+                let numerator = self.univ_g * self.sim_datas[i].mass * self.sim_datas[j].mass;
+                let r = self.sim_datas[j].pos - self.sim_datas[i].pos;
+                let denominator = r.x.hypot(r.y);
+                cumulative -= numerator/denominator;
+            }
+        }
+        cumulative
+    }
+}
 
 use std::fmt;
 

@@ -23,7 +23,7 @@ fn main() {
     let earth_graph = BodyGraphProperty::new(BodyShape::Circle{ radius: 3.0 }, Color::new(1., 1., 1., 1.), DrawMode::Fill);
     state.create_planet("Terra", Point2::new(400. + 149.597, 300.), Vector2::new(0.,0.5*29.783_e-6), 5.9726, earth_graph);
     
-    state.create_planet("Terra2", Point2::new(400. - 149.597, 300.), Vector2::new(0.,-0.5*29.783_e-6), 5.9726, earth_graph);
+    //state.create_planet("Terra2", Point2::new(400. - 149.597, 300.), Vector2::new(0.,-0.5*29.783_e-6), 5.9726, earth_graph);
 
     event::run(ctx, state).unwrap();
 }

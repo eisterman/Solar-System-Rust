@@ -22,9 +22,9 @@ const BEZIER_TOLERANCE: f32 = 2.0;
 
 #[derive(Debug,Clone)]
 struct PhysicalCollectedData {
-    total_angular_momentum: Vec<f32>,
-    system_kinetic_energy: Vec<f32>,
-    system_potential_energy: Vec<f32>
+    total_angular_momentum: Vec<f64>,
+    system_kinetic_energy: Vec<f64>,
+    system_potential_energy: Vec<f64>
 }
 
 impl PhysicalCollectedData {
@@ -34,7 +34,7 @@ impl PhysicalCollectedData {
                                 system_potential_energy: Vec::new() }
     }
 
-    fn add_data_tuple(&mut self, angular_momentum: f32, kinetic_energy: f32, potential_energy: f32) {
+    fn add_data_tuple(&mut self, angular_momentum: f64, kinetic_energy: f64, potential_energy: f64) {
         self.total_angular_momentum.push(angular_momentum);
         self.system_kinetic_energy.push(kinetic_energy);
         self.system_potential_energy.push(potential_energy);
@@ -62,18 +62,18 @@ impl BodyGraphProperty {
 }
 
 pub struct GraphicSimulation {
-    engine: Simulation<f32,i32>,
+    engine: Simulation<f64,i64>,
     graph_property: Vec<BodyGraphProperty>,
     stored_data: PhysicalCollectedData,
 }
 
 impl GraphicSimulation {
     pub fn new(_ctx: &mut Context) -> GameResult<GraphicSimulation> { //64000 default gran
-        let s = GraphicSimulation { engine: Simulation::new(64000, 6.67_e-14), graph_property: Vec::<BodyGraphProperty>::new(), stored_data: PhysicalCollectedData::new() };
+        let s = GraphicSimulation { engine: Simulation::new(16000, 6.67_e-14), graph_property: Vec::<BodyGraphProperty>::new(), stored_data: PhysicalCollectedData::new() };
         Ok(s)
     }
 
-    pub fn create_planet(&mut self, name: &str, pos: Point2<f32>, vel: Vector2<f32>, mass: f32, graph_prop: BodyGraphProperty) { //TODO: GraphicProperty input!
+    pub fn create_planet(&mut self, name: &str, pos: Point2<f64>, vel: Vector2<f64>, mass: f64, graph_prop: BodyGraphProperty) { //TODO: GraphicProperty input!
         let body = Box::new(Planet::new(name, pos, vel, mass));
         
         use self::BodyShape::*;
@@ -86,6 +86,11 @@ impl GraphicSimulation {
         self.engine.add_body(body);
         self.graph_property.push(graph_prop);
     }
+}
+
+#[inline]
+fn point_downscale(input: Point2<f64>) -> Point2<f32> {
+    Point2::<f32>::new(input.x as f32, input.y as f32)
 }
 
 // Esprimo in sistema di misura Pos: 10^6 km, Tempo: s, massa: 10^24 kg
@@ -114,19 +119,19 @@ impl event::EventHandler for GraphicSimulation {
                 Circle { radius }       => {
                     graphics::circle(ctx,
                         graph_prop.draw_mode,
-                        body.pos,
+                        point_downscale(body.pos),
                         radius,
                         BEZIER_TOLERANCE)?;
                 }
                 Rectangle { w, h }      => {
                     graphics::rectangle(ctx,
                         graph_prop.draw_mode,
-                        Rect::new(body.pos.x, body.pos.y, w, h))?; //x e y indicano il centro o lo spigolo inferiore sinistro?
+                        Rect::new(body.pos.x as f32, body.pos.y as f32, w, h))?; //x e y indicano il centro o lo spigolo inferiore sinistro?
                 }
                 Square { l }            => {
                     graphics::rectangle(ctx,
                         graph_prop.draw_mode,
-                        Rect::new(body.pos.x, body.pos.y, l, l))?; //x e y indicano il centro o lo spigolo inferiore sinistro?
+                        Rect::new(body.pos.x as f32, body.pos.y as f32, l, l))?; //x e y indicano il centro o lo spigolo inferiore sinistro?
                 }
             }
         }
@@ -143,13 +148,13 @@ impl event::EventHandler for GraphicSimulation {
                 use gnuplot::{Figure, Caption, Color};
                 // Angular Momentum
                 let y1 = &self.stored_data.total_angular_momentum;
-                let x1: Vec<f32> = (0..y1.len()).map(|x| {x as f32}).collect();
+                let x1: Vec<f64> = (0..y1.len()).map(|x| {x as f64}).collect();
                 let mut fg1 = Figure::new();
                 fg1.axes2d().lines(&x1, y1, &[Caption("Total Angular Momentum"), Color("black")]);
                 fg1.show();
                 // Total Mechanical Energy
-                let y2: Vec<f32> = self.stored_data.system_kinetic_energy.iter().zip(self.stored_data.system_potential_energy.iter()).map(|(x,y)| { x + y }).collect();
-                let x2: Vec<f32> = (0..y2.len()).map(|x| {x as f32}).collect();
+                let y2: Vec<f64> = self.stored_data.system_kinetic_energy.iter().zip(self.stored_data.system_potential_energy.iter()).map(|(x,y)| { x + y }).collect();
+                let x2: Vec<f64> = (0..y2.len()).map(|x| {x as f64}).collect();
                 let mut fg2 = Figure::new();
                 fg2.axes2d().lines(&x2, &y2, &[Caption("Total Mechanical Energy"), Color("red")]);
                 fg2.show();

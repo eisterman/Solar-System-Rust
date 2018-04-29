@@ -11,3 +11,6 @@ Cargo.lock
 
 # Visual Studio Code config
 .vscode/
+
+# Local personal folders
+simulation_img/

@@ -9,7 +9,7 @@ use nalgebra::geometry::Point2;
 use nalgebra::Vector2;
 use alga::general::Real;
 use alga::general::RingCommutative;
-use num::ToPrimitive;
+use num::{ToPrimitive,NumCast};
 use sim_elements::Simulable;
 
 //pub const DEFAULT_G: f64 = 1000.;
@@ -29,7 +29,7 @@ pub struct SimData<T> where T: Scalar {
     pub mass: T,
 }
 
-impl<T,U> Simulation<T,U> where T: Scalar + Real, U: Copy + ToPrimitive + RingCommutative + Debug {
+impl<T,U> Simulation<T,U> where T: Scalar + Real + NumCast, U: Copy + ToPrimitive + RingCommutative + Debug {
     pub fn new(time_granularity: U, univ_g: T) -> Simulation<T,U> {
         assert_ne!(time_granularity, num::zero());
         Simulation{
@@ -85,16 +85,13 @@ impl<T,U> Simulation<T,U> where T: Scalar + Real, U: Copy + ToPrimitive + RingCo
         // Lx = Ly = 0; Lz = PosX * VelY - PosY * VelX con posizioni relative al CDM
         self.sim_datas.iter().map(|obj| (obj.pos.x - cdm.x)* obj.vel.y - (obj.pos.y - cdm.y) * obj.vel.x).fold(num::zero(), |acc,x| {acc + x})
     }
-}
 
-//TODO: Find a solution! 0.5 break the generics structure
-impl Simulation<f32,i32> {
-    pub fn calculate_kinetic_energy(&self) -> f32 {
-        self.sim_datas.iter().map(|obj| { 0.5 * obj.mass * (obj.vel.x * obj.vel.x + obj.vel.y * obj.vel.y) } ).sum()
+    pub fn calculate_kinetic_energy(&self) -> T {
+        self.sim_datas.iter().map(|obj| { T::from(0.5).unwrap() * obj.mass * (obj.vel.x * obj.vel.x + obj.vel.y * obj.vel.y) } ).fold(num::zero(), |acc,x| {acc + x})
     }
 
-    pub fn calculate_potential_energy(&self) -> f32 {
-        let mut cumulative = 0_f32;
+    pub fn calculate_potential_energy(&self) -> T {
+        let mut cumulative = num::zero();
         let n_body = self.sim_datas.len();
         for i in 0 .. n_body {
             for j in (i+1) .. n_body {

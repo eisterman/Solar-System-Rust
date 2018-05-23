@@ -24,20 +24,23 @@ const BEZIER_TOLERANCE: f32 = 2.0;
 struct PhysicalCollectedData {
     total_angular_momentum: Vec<f64>,
     system_kinetic_energy: Vec<f64>,
-    system_potential_energy: Vec<f64>
+    system_potential_energy: Vec<f64>,
+    center_of_mass: Vec<Point2<f64>>,
 }
 
 impl PhysicalCollectedData {
     fn new() -> PhysicalCollectedData {
         PhysicalCollectedData{  total_angular_momentum: Vec::new(), 
                                 system_kinetic_energy: Vec::new(), 
-                                system_potential_energy: Vec::new() }
+                                system_potential_energy: Vec::new(),
+                                center_of_mass: Vec::new() }
     }
 
-    fn add_data_tuple(&mut self, angular_momentum: f64, kinetic_energy: f64, potential_energy: f64) {
+    fn add_data_tuple(&mut self, angular_momentum: f64, kinetic_energy: f64, potential_energy: f64, center_of_mass: Point2<f64>) {
         self.total_angular_momentum.push(angular_momentum);
         self.system_kinetic_energy.push(kinetic_energy);
         self.system_potential_energy.push(potential_energy);
+        self.center_of_mass.push(center_of_mass);
     }
 }
 
@@ -69,7 +72,7 @@ pub struct GraphicSimulation {
 
 impl GraphicSimulation {
     pub fn new(_ctx: &mut Context) -> GameResult<GraphicSimulation> { //64000 default gran
-        let s = GraphicSimulation { engine: Simulation::new(16000, 6.67_e-14), graph_property: Vec::<BodyGraphProperty>::new(), stored_data: PhysicalCollectedData::new() };
+        let s = GraphicSimulation { engine: Simulation::new(64000, 6.67_e-14), graph_property: Vec::<BodyGraphProperty>::new(), stored_data: PhysicalCollectedData::new() };
         Ok(s)
     }
 
@@ -100,10 +103,11 @@ impl event::EventHandler for GraphicSimulation {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
         self.engine.evolve(1);
         //Calculate L, Ek, Ep and insert in self.stored_data
-        let L = self.engine.calculate_angular_momentum_cdm();
-        let Ek = self.engine.calculate_kinetic_energy();
-        let Ep = self.engine.calculate_potential_energy();
-        self.stored_data.add_data_tuple(L, Ek, Ep);
+        let l = self.engine.calculate_angular_momentum_cdm();
+        let ek = self.engine.calculate_kinetic_energy();
+        let ep = self.engine.calculate_potential_energy();
+        let cdm = self.engine.calculate_cdm();
+        self.stored_data.add_data_tuple(l, ek, ep, cdm);
         Ok(())
     }
 
@@ -158,6 +162,16 @@ impl event::EventHandler for GraphicSimulation {
                 let mut fg2 = Figure::new();
                 fg2.axes2d().lines(&x2, &y2, &[Caption("Total Mechanical Energy"), Color("red")]);
                 fg2.show();
+                // Center of Mass scatter plot
+                let (x3, y3): (std::vec::Vec<f64>, std::vec::Vec<f64>) = self.stored_data.center_of_mass.iter().fold( (Vec::<f64>::new(), Vec::<f64>::new()), |(mut x,mut y), p| {x.push(p.x); y.push(p.y); (x,y)});
+                let mut fg3 = Figure::new();
+                fg3.axes2d().points(x3, y3, &[Caption("Center of Mass progression"), Color("blue")]);
+                fg3.show();
+                // Center of Mass (t,x) and (t,y) plots
+                /*let z4 = (0..y3.len()).map(|x| {x as f64}).collect();
+                let mut fg4 = Figure::new();
+                fg4.axes3d().surface(mat: X, num_rows: usize, num_cols: usize, dimensions: Option<(f64, f64, f64, f64)>, options: &[Caption("Center of Mass time progression"), Color("blue")]);
+                fg4.show();*/
                 // Quit Event
                 _ctx.quit().unwrap();
             }
